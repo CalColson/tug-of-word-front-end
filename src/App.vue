@@ -1,7 +1,6 @@
-<template>
-  <div id="app">
-    <router-view/>
-  </div>
+<template lang="pug">
+  #app
+    router-view
 </template>
 
 <script>
@@ -12,6 +11,8 @@ export default {
 </script>
 
 <style lang="scss">
+$bgColor: slategray;
+
 body {
   margin: 0;
 }
@@ -21,6 +22,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 
   height: 100vh;
-  background: slategray;
+  background: $bgColor;
 }
 </style>
