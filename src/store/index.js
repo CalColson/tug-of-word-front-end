@@ -5,8 +5,12 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    socket: null
   },
   mutations: {
+    setSocket (state, socket) {
+      state.socket = socket
+    }
   },
   actions: {
   },

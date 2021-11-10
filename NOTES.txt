@@ -1,0 +1,4 @@
+CURRENT ISSUES:
+1. If a tab goes inactive (switching tabs so that game tab is not visible) the timing on the TugBar animation instantly goes out of sync. This is because setInterval() does not work correctly in the background. Instead it seems that the best solution will be to use a web worker. See this solution: https://stackoverflow.com/a/54414529
+
+SOLVED ISSUES:

@@ -10,15 +10,15 @@
 
 <script>
 
-const totalStartingTime = 15
+const TOTAL_STARTING_TIME = 10000
 
 export default {
   name: 'TugBar',
   data: function () {
     return {
-      totalTime: totalStartingTime,
-      myTime: totalStartingTime / 2,
-      yourTime: totalStartingTime / 2,
+      totalTime: TOTAL_STARTING_TIME,
+      myTime: TOTAL_STARTING_TIME / 2,
+      yourTime: TOTAL_STARTING_TIME / 2,
 
       isShrinking: true,
 
@@ -45,7 +45,8 @@ export default {
       }, 100)
     },
     isTimeInBounds () {
-      return this.myTime > 0 && this.myTime < 60 && this.yourTime > 0 && this.yourTime < 60
+      return (this.myTime > 0 && this.myTime < TOTAL_STARTING_TIME &&
+        this.yourTime > 0 && this.yourTime < TOTAL_STARTING_TIME)
     },
     reverseTugBar () {
       // Clear interval to replace it with new one

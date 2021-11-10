@@ -1,16 +1,20 @@
-<template lang="pug">
+<template lang='pug'>
   #app
     router-view
 </template>
 
 <script>
+import { io } from 'socket.io-client'
 
 export default {
-  name: 'App'
+  name: 'App',
+  created: function () {
+    this.$store.commit('setSocket', io(process.env.VUE_APP_SOCKET_ENDPOINT))
+  }
 }
 </script>
 
-<style lang="scss">
+<style lang='scss'>
 $bgColor: slategray;
 
 body {
