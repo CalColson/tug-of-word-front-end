@@ -10,7 +10,8 @@
 
 <script>
 
-const TOTAL_STARTING_TIME = 10000
+// const TOTAL_STARTING_TIME = 10000
+const TOTAL_STARTING_TIME = 60
 
 export default {
   name: 'TugBar',
@@ -25,8 +26,14 @@ export default {
       intervalId: null
     }
   },
+  destroyed: function () {
+    if (this.intervalId) clearInterval(this.intervalId)
+  },
   methods: {
     updateTimeInterval () {
+      // Clear interval to replace it with new one
+      if (this.intervalId) clearInterval(this.intervalId)
+
       this.intervalId = setInterval(() => {
         // clear the interval in the event that the time has elapsed
         if (!this.isTimeInBounds()) {
@@ -49,9 +56,6 @@ export default {
         this.yourTime > 0 && this.yourTime < TOTAL_STARTING_TIME)
     },
     reverseTugBar () {
-      // Clear interval to replace it with new one
-      if (this.intervalId) clearInterval(this.intervalId)
-
       const tugBar = document.getElementById('tugBar')
 
       if (tugBar) {
@@ -75,6 +79,15 @@ export default {
       } else {
         throw Error('tugbar element not found!')
       }
+
+      this.updateTimeInterval()
+    },
+
+    // halve the appropriate person's time
+    applyPenalty (isMyTurn) {
+      // console.log('applying penalty')
+      if (isMyTurn) this.myTime = Math.round((this.myTime / 2) * 10) / 10
+      else this.yourTime = Math.round((this.myTime / 2) * 10) / 10
 
       this.updateTimeInterval()
     }
