@@ -2,10 +2,10 @@
   #game
     #titleText.flexText tug of word
     #subtitleText.flexText
-      span#myName.name(v-if='isMyTurn') blue -->
-      span#yourName.name(v-else) red -->
+      span#myName.name(v-if='isMyTurn') you -->
+      span#yourName.name(v-else) them -->
       |{{word}}
-    TugBar(ref='tugBar')
+    TugBar(ref='tugBar' :isMyTurn='isMyTurn')
 </template>
 
 <script>
@@ -49,7 +49,6 @@ export default {
       word: START_TEXT,
       candidateWord: START_TEXT,
 
-      // TODO: implement turns...
       isMyTurn: null,
       isInputPaused: false,
 
@@ -106,7 +105,6 @@ export default {
         this.SUBTITLE_ELEMENT.style.color = FAILURE_COLOR_STR
         this.word = word
 
-        // TODO: handle time penalty and switching turn, this will require a socket emission to the server
         setTimeout(() => {
           this.applyPenalty()
         }, WORD_ERROR_PAUSE_TIME_MS)
@@ -126,7 +124,7 @@ export default {
         }, WORD_SUCCESS_PAUSE_TIME_MS)
       })
 
-      // TODO: when client has submitted an invalid entire word
+      // TODO: when client has submitted an invalid entire word... can probably be merged with word error event
       this.socket.on(WORD_FAILURE_EVENT_NAME, (word) => {
 
       })

@@ -1,4 +1,5 @@
 CURRENT ISSUES:
 1. If a tab goes inactive (switching tabs so that game tab is not visible) the timing on the TugBar animation instantly goes out of sync. This is because setInterval() does not work correctly in the background. Instead it seems that the best solution will be to use a web worker. See this solution: https://stackoverflow.com/a/54414529
+2. If the game component is resized, the width transition for 'growing' class will be broken. This is because the width that the tugBar div is growing to is determined at 'mounted' hook to be the length of progressBar div. resizing the game component results in a change of the progressBar div size, but this is not addressed currently. To fix this issue, I need to programatically adjust the custom styling at the time of resizing.
 
 SOLVED ISSUES:

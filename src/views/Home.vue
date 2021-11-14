@@ -41,6 +41,10 @@ export default {
   },
   destroyed: function () {
     this.removeSocketListeners()
+
+    if (this.code && this.showHost) {
+      this.socket.emit(CODE_REMOVE_EVENT_NAME, this.code)
+    }
   },
 
   methods: {
@@ -56,7 +60,11 @@ export default {
 
       // message from server denoting successful code entry
       this.socket.on(CODE_SUCCESS_EVENT_NAME, (gameRoom) => {
-        console.log(`found game: ${gameRoom.code}`)
+        // console.log(`found game: ${gameRoom.code}`)
+
+        // included this line to allow the gameState and gameRoom to be removed on the server easier
+        // see 'destroyed' function above
+        this.showHost = false
 
         this.$router.push({ name: 'Game', params: { room: gameRoom } })
       })
