@@ -28,12 +28,13 @@ const WORD_BROADCAST_EVENT_NAME = 'wordBroadcast'
 const WORD_ERROR_EVENT_NAME = 'wordError'
 
 const WORD_SUCCESS_EVENT_NAME = 'wordSuccess'
-const WORD_FAILURE_EVENT_NAME = 'wordFailure'
 
 // socket emission constants (emitting)
 const WORD_UPDATE_EVENT_NAME = 'wordUpdate'
 const WORD_SUBMISSION_EVENT_NAME = 'wordSubmission'
 const GAME_LEFT_EVENT_NAME = 'gameLeft'
+
+// TODO: handle game over, winning and losing screens
 
 export default {
   name: 'Home',
@@ -65,7 +66,9 @@ export default {
   created: function () {
     this.setupSocket()
 
-    this.isMyTurn = this.room.firstToGo === this.socket.id
+    if (this.room) {
+      this.isMyTurn = this.room.firstToGo === this.socket.id
+    }
   },
   mounted: function () {
     this.tugBar = this.$refs.tugBar
@@ -83,7 +86,9 @@ export default {
     window.removeEventListener('keydown', this.windowEventListener)
 
     // emit signal to cleanup game info on server
-    this.socket.emit(GAME_LEFT_EVENT_NAME, this.room.code)
+    if (this.room) {
+      this.socket.emit(GAME_LEFT_EVENT_NAME, this.room.code)
+    }
   },
   methods: {
     setupSocket () {
@@ -123,17 +128,11 @@ export default {
           this.startNewWord()
         }, WORD_SUCCESS_PAUSE_TIME_MS)
       })
-
-      // TODO: when client has submitted an invalid entire word... can probably be merged with word error event
-      this.socket.on(WORD_FAILURE_EVENT_NAME, (word) => {
-
-      })
     },
     removeSocketListeners () {
       this.socket.off(WORD_BROADCAST_EVENT_NAME)
       this.socket.off(WORD_ERROR_EVENT_NAME)
       this.socket.off(WORD_SUCCESS_EVENT_NAME)
-      this.socket.off(WORD_FAILURE_EVENT_NAME)
     },
     handleInput (key) {
       // do nothing if input is paused
@@ -157,6 +156,9 @@ export default {
       } else if (key === 'Enter') {
         // if no word has been started, do nothing
         if (this.word === START_TEXT || this.word === NEW_WORD_TEXT) return
+
+        // if word is shorter than 4 characters, do nothing
+        if (this.word.length < 4) return
 
         // server needs to know the room code to locate the players with wordSuccess
         this.socket.emit(WORD_SUBMISSION_EVENT_NAME, this.room.code, this.word)

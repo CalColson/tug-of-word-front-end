@@ -2,20 +2,13 @@
 #tugBarContainer
   #timeLeft.timeIndicator {{myTime.toFixed(1)}}
   #timeRight.timeIndicator {{yourTime.toFixed(1)}}
-  #progressBar
-    #tugBar
+  #canvasContainer
+    canvas#tugBarCanvas
 </template>
 
 <script>
-// TODO: overhaul all of tugbar to match myTime and yourTime directly to tugbar animation progress... right now it is really broken :/
-
 // const TOTAL_STARTING_TIME = 10000
-const TOTAL_STARTING_TIME = 60
-
-const SHRINKING_CLASS_NAME = 'shrinking'
-// descriptive name created to avoid possible clashing, since this class is not scoped... see mounted
-// hook and css comment
-const GROWING_CLASS_NAME = 'tugBarGrowing'
+const TOTAL_STARTING_TIME = 15
 
 export default {
   name: 'TugBar',
@@ -29,43 +22,46 @@ export default {
       myTime: TOTAL_STARTING_TIME / 2,
       yourTime: TOTAL_STARTING_TIME / 2,
 
+      hasGameStarted: false,
       isShrinking: null,
 
       intervalId: null,
 
       // DOM elements
-      // variable containing the head tag of the entire app. Used for programatic styling
-      APP_HEAD_ELEMENT: null,
-      PROGRESS_BAR_ELEMENT: null,
-      TUG_BAR_ELEMENT: null,
-
-      // created DOM element
-      ADDED_STYLE_ELEMENT: null
+      canvas: null,
+      ctx: null
+    }
+  },
+  computed: {
+    tugBarPercentage: function () {
+      return (this.myTime / this.totalTime) * 100
     }
   },
   created: function () {
-    // synonymous with isMyTurn
-    this.isShrinking = this.isMyTurn
+    // synonymous with isMyTurn at creation of game
+    if (this.isMyTurn) {
+      this.isShrinking = this.isMyTurn
+    }
     // console.log(`isShrinking: ${this.isShrinking}`)
   },
   mounted: function () {
-    this.APP_HEAD_ELEMENT = document.getElementsByTagName('head')[0]
-    this.PROGRESS_BAR_ELEMENT = document.getElementById('progressBar')
-    this.TUG_BAR_ELEMENT = document.getElementById('tugBar')
+    // setup for canvas manipulation
+    this.canvas = document.getElementById('tugBarCanvas')
 
-    // programatically create growing class
-    this.ADDED_STYLE_ELEMENT = document.createElement('style')
-    this.ADDED_STYLE_ELEMENT.innerHTML = `#tugBar.tugBarGrowing {width: ${this.PROGRESS_BAR_ELEMENT.clientWidth}px}`
-    this.APP_HEAD_ELEMENT.appendChild(this.ADDED_STYLE_ELEMENT)
+    this.ctx = this.canvas.getContext('2d')
+    this.ctx.strokeStyle = 'white'
+
+    // console.log(`Canvas width: ${this.canvas.width}`)
+    // console.log(`Canvas height: ${this.canvas.height}`)
+
+    // draw initial state of canvas
+    this.draw(this.tugBarPercentage)
   },
   destroyed: function () {
     if (this.intervalId) {
       clearInterval(this.intervalId)
       this.intervalId = null
     }
-
-    // remove programatically added style
-    this.APP_HEAD_ELEMENT.removeChild(this.ADDED_STYLE_ELEMENT)
   },
   methods: {
     updateTimeInterval () {
@@ -100,72 +96,69 @@ export default {
         this.yourTime > 0 && this.yourTime < TOTAL_STARTING_TIME)
     },
     reverseTugBar () {
-      const tugBar = this.TUG_BAR_ELEMENT
+      // console.log('reversing tugBar')
 
-      if (tugBar) {
-        if (tugBar.classList.contains(SHRINKING_CLASS_NAME)) {
-          tugBar.classList.remove(SHRINKING_CLASS_NAME)
-
-          tugBar.style.transitionDuration = `${this.yourTime}s`
-          tugBar.classList.add(GROWING_CLASS_NAME)
-          this.isShrinking = false
-        } else if (tugBar.classList.contains(GROWING_CLASS_NAME)) {
-          tugBar.classList.remove(GROWING_CLASS_NAME)
-
-          tugBar.style.transitionDuration = `${this.myTime}s`
-          tugBar.classList.add(SHRINKING_CLASS_NAME)
-          this.isShrinking = true
-        } else {
-          // tugbar does not have a class yet, so we will give it the appropriate one
-
-          // first flip isShrinking, as turn will immediately change after first input
-          this.isShrinking = !this.isShrinking
-
-          const newClassName = this.isShrinking ? SHRINKING_CLASS_NAME : GROWING_CLASS_NAME
-
-          tugBar.style.transitionDuration = `${this.totalTime / 2}s`
-          tugBar.classList.add(newClassName)
-        }
-      } else {
-        throw Error('tugbar element not found!')
+      // ensure that animation begins on the first reverseTugBar call
+      if (!this.hasGameStarted) {
+        this.animateNextFrame()
+        this.hasGameStarted = true
       }
 
+      this.isShrinking = !this.isShrinking
       this.updateTimeInterval()
     },
 
     // halve the appropriate person's time
     // don't confuse the local parameter isMyTurn with the one on this component
     applyPenalty (isMyTurn) {
-      console.log('applying penalty')
+      // console.log('applying penalty')
 
       // if it's my turn, half myTime, else half yourTime
       if (isMyTurn) {
         this.myTime = Math.round((this.myTime / 2) * 10) / 10
         this.yourTime = this.totalTime - this.myTime
-
-        // update the bar GUI to half size
-        // console.log(`original width: ${this.TUG_BAR_ELEMENT.clientWidth}`)
-        this.TUG_BAR_ELEMENT.style.width = `${this.TUG_BAR_ELEMENT.clientWidth / 2}px`
-        // console.log(`halved width: ${this.TUG_BAR_ELEMENT.clientWidth}`)
-
-        // update the gui transition duration
-        this.TUG_BAR_ELEMENT.style.transitionDuration = `${this.myTime}s`
       } else {
         this.yourTime = Math.round((this.yourTime / 2) * 10) / 10
         this.myTime = this.totalTime - this.yourTime
-
-        // update the bar GUI to add half of opponent's size
-        let newWidth = (this.PROGRESS_BAR_ELEMENT.clientWidth - this.TUG_BAR_ELEMENT.clientWidth) / 2
-        newWidth = Math.round(newWidth)
-        newWidth = this.TUG_BAR_ELEMENT.clientWidth + newWidth
-
-        this.TUG_BAR_ELEMENT.style.width = `${newWidth}px`
-
-        // update the gui transition duration
-        this.TUG_BAR_ELEMENT.style.transitionDuration = `${this.yourTime}s`
       }
 
       this.updateTimeInterval()
+    },
+    draw (percentage) {
+      // clear screen
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+      // draw progress bar and background
+      this.ctx.fillStyle = 'red'
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+      this.ctx.fillStyle = 'blue'
+      this.ctx.fillRect(0, 0, this.canvas.width * (percentage / 100), this.canvas.height)
+
+      // if the tugBarPercentage is zero, no need to draw middle line
+      // (prevents thick middle line showing on ended game)
+      if (this.tugBarPercentage === 0 || this.tugBarPercentage === 100) return
+
+      // draw middle line
+      this.ctx.beginPath()
+      this.ctx.lineWidth = 2
+
+      const x = this.canvas.width * (percentage / 100)
+      // console.log(x)
+      this.ctx.moveTo(x + 0.5, 0)
+      this.ctx.lineTo(x + 0.5, this.canvas.height)
+      this.ctx.stroke()
+    },
+    animateNextFrame () {
+      // console.log('animating')
+
+      if (this.tugBarPercentage >= 0 && this.tugBarPercentage <= 100) {
+        this.draw(this.tugBarPercentage)
+
+        // stop animation only when game is over
+        if (this.tugBarPercentage !== 0 && this.tugBarPercentage !== 100) {
+          window.requestAnimationFrame(this.animateNextFrame)
+        }
+      }
     }
   }
 }
@@ -178,33 +171,18 @@ export default {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    'timeLeft timeRight '
+    'canvas   canvas    ';
 }
 
-#progressBar {
-  border: 4px solid white;
-  background-color: red;
-  // background-color: beige;
-  grid-column: 1 / 3;
+#timeLeft {
+  grid-area: timeLeft;
 }
 
-#tugBar {
-  height: 100%;
-  width: 50%;
-  border-right: 1px solid white;
-  background-color: blue;
-  // background-color: orange;
-
-  transform-origin: left;
-  transition-property: width, transform;
-  transition-timing-function: linear;
+#timeRight {
+  grid-area: timeRight;
 }
-#tugBar.shrinking {
-  transform: scaleX(0);
-}
-// need to define this programatically in 'mounted' callback to match calculated width of progress bar
-// #tugBar.growing {
-//   transform: scaleX(2);
-// }
 
 .timeIndicator {
   display: flex;
@@ -213,5 +191,17 @@ export default {
   padding-bottom: 10px;
   color: white;
   font-size: x-large;
+}
+
+#canvasContainer {
+  position: relative;
+  grid-area: canvas;
+  border: 4px solid white;
+}
+
+#tugBarCanvas {
+  position: absolute;
+  height: 100%;
+  width: 100%;
 }
 </style>
