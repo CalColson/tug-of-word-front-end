@@ -1,11 +1,18 @@
 <template lang='pug'>
   #game
     #titleText.flexText tug of word
-    #subtitleText.flexText
+    #subtitleText.flexText(v-if='!gameIsOver')
       span#myName.name(v-if='isMyTurn') you -->
       span#yourName.name(v-else) them -->
       |{{word}}
-    TugBar(ref='tugBar' :isMyTurn='isMyTurn')
+    #subtitleText.flexText(v-else)
+      //- TODO: think about replacing this conditional with something else
+      span#myName.name(v-if='!isMyTurn') you
+      span#yourName.name(v-else) they
+      | are the winner!
+    TugBar(ref='tugBar' :isMyTurn='isMyTurn' @gameOver='handleGameOver')
+    #buttonContainer
+      button#rematchButton(v-if='gameIsOver' @click='handleRematch') rematch?
 </template>
 
 <script>
@@ -26,13 +33,19 @@ const WORD_ERROR_PAUSE_TIME_MS = 500
 // socket event constants (receiving)
 const WORD_BROADCAST_EVENT_NAME = 'wordBroadcast'
 const WORD_ERROR_EVENT_NAME = 'wordError'
-
 const WORD_SUCCESS_EVENT_NAME = 'wordSuccess'
+
+const GAME_RESULT_EVENT_NAME = 'gameResult'
+const REMATCH_EVENT_NAME = 'rematch'
 
 // socket emission constants (emitting)
 const WORD_UPDATE_EVENT_NAME = 'wordUpdate'
 const WORD_SUBMISSION_EVENT_NAME = 'wordSubmission'
+
 const GAME_LEFT_EVENT_NAME = 'gameLeft'
+const GAME_OVER_EVENT_NAME = 'gameOver'
+
+const REMATCH_REQUEST_EVENT_NAME = 'rematchRequest'
 
 // TODO: handle game over, winning and losing screens
 
@@ -49,6 +62,9 @@ export default {
 
       word: START_TEXT,
       candidateWord: START_TEXT,
+
+      gameIsOver: false,
+      didIWin: null,
 
       isMyTurn: null,
       isInputPaused: false,
@@ -128,12 +144,37 @@ export default {
           this.startNewWord()
         }, WORD_SUCCESS_PAUSE_TIME_MS)
       })
+
+      // when server informs client of verified game result
+      this.socket.on(GAME_RESULT_EVENT_NAME, (gameWasWon) => {
+        this.didIWin = gameWasWon
+        this.gameIsOver = true
+      })
+
+      // when server informs client of rematch
+      this.socket.on(REMATCH_EVENT_NAME, () => {
+        // reset Game Component state
+        this.word = START_TEXT
+        this.candidateWord = START_TEXT
+
+        this.gameIsOver = false
+
+        this.isMyTurn = !this.didIWin
+        this.didIWin = null
+        this.isInputPaused = false
+
+        // reset tugBar (the argument specifices who should go first)
+        this.tugBar.reset(this.isMyTurn)
+      })
     },
     removeSocketListeners () {
       this.socket.off(WORD_BROADCAST_EVENT_NAME)
       this.socket.off(WORD_ERROR_EVENT_NAME)
       this.socket.off(WORD_SUCCESS_EVENT_NAME)
+      this.socket.off(GAME_RESULT_EVENT_NAME)
+      this.socket.off(REMATCH_EVENT_NAME)
     },
+
     handleInput (key) {
       // do nothing if input is paused
       if (this.isInputPaused || !this.isMyTurn) return
@@ -164,14 +205,28 @@ export default {
         this.socket.emit(WORD_SUBMISSION_EVENT_NAME, this.room.code, this.word)
       }
     },
+
     startNewWord () {
       this.SUBTITLE_ELEMENT.style.color = DEFAULT_COLOR_STR
       this.word = NEW_WORD_TEXT
       this.isInputPaused = false
     },
+
     applyPenalty () {
       this.tugBar.applyPenalty(this.isMyTurn)
       this.startNewWord()
+    },
+
+    handleGameOver (gameWasWon) {
+      // console.log(`handling game over: ${gameWasWon ? 'win' : 'loss'}`)
+
+      this.isInputPaused = true
+      this.socket.emit(GAME_OVER_EVENT_NAME, this.room.code, gameWasWon)
+    },
+
+    handleRematch () {
+      // emit signal to reset gameState on server
+      this.socket.emit(REMATCH_REQUEST_EVENT_NAME, this.room.code)
     }
   }
 
@@ -184,6 +239,16 @@ export default {
   padding: 0 2rem;
   display: grid;
   grid-template-rows: 2fr 1fr 3fr 3fr;
+}
+
+#buttonContainer {
+  display: flex;
+  align-items: center;
+}
+#rematchButton {
+  height: 50%;
+  width: 100%;
+  font-size: xx-large;
 }
 
 .flexText {

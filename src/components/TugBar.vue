@@ -79,22 +79,31 @@ export default {
             this.intervalId = null
           }
           // Time has elapsed, handle winning/losing of game
+
+          // game is over, the second argument to emit is gameWasWon : boolean
+          if (this.myTime === 0) this.$emit('gameOver', false)
+          else if (this.myTime === this.totalTime) this.$emit('gameOver', true)
+          else throw new Error(`game ended with abnormal myTime: ${this.myTime}`)
+
           return
         }
 
+        // either increase or decrease myTime by a tenth of a second
         if (this.isShrinking) {
           this.myTime = Math.round((this.myTime - 0.1) * 10) / 10
-          this.yourTime = this.totalTime - this.myTime
         } else {
           this.myTime = Math.round((this.myTime + 0.1) * 10) / 10
-          this.yourTime = this.totalTime - this.myTime
         }
+        // update yourTime based on myTime
+        this.yourTime = this.totalTime - this.myTime
       }, 100)
     },
+
     isTimeInBounds () {
       return (this.myTime > 0 && this.myTime < TOTAL_STARTING_TIME &&
         this.yourTime > 0 && this.yourTime < TOTAL_STARTING_TIME)
     },
+
     reverseTugBar () {
       // console.log('reversing tugBar')
 
@@ -124,6 +133,20 @@ export default {
 
       this.updateTimeInterval()
     },
+
+    reset (isShrinking) {
+      this.totalTime = TOTAL_STARTING_TIME
+      this.myTime = TOTAL_STARTING_TIME / 2
+      this.yourTime = TOTAL_STARTING_TIME / 2
+
+      this.hasGameStarted = false
+      this.isShrinking = isShrinking
+
+      this.intervalId = null
+
+      this.draw(this.tugBarPercentage)
+    },
+
     draw (percentage) {
       // clear screen
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
