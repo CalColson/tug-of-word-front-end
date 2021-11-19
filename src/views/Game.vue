@@ -10,7 +10,7 @@
       span#myName.name(v-if='!isMyTurn') you
       span#yourName.name(v-else) they
       | are the winner!
-    TugBar(ref='tugBar' :isMyTurn='isMyTurn' @gameOver='handleGameOver')
+    TugBar(ref='tugBar' :isMyTurn='isMyTurn')
     #buttonContainer
       button#rematchButton(v-if='gameIsOver' @click='handleRematch') rematch?
 </template>
@@ -31,6 +31,8 @@ const WORD_SUCCESS_PAUSE_TIME_MS = 500
 const WORD_ERROR_PAUSE_TIME_MS = 500
 
 // socket event constants (receiving)
+const TIME_UPDATE_EVENT_NAME = 'timeUpdate'
+
 const WORD_BROADCAST_EVENT_NAME = 'wordBroadcast'
 const WORD_ERROR_EVENT_NAME = 'wordError'
 const WORD_SUCCESS_EVENT_NAME = 'wordSuccess'
@@ -43,11 +45,8 @@ const WORD_UPDATE_EVENT_NAME = 'wordUpdate'
 const WORD_SUBMISSION_EVENT_NAME = 'wordSubmission'
 
 const GAME_LEFT_EVENT_NAME = 'gameLeft'
-const GAME_OVER_EVENT_NAME = 'gameOver'
 
 const REMATCH_REQUEST_EVENT_NAME = 'rematchRequest'
-
-// TODO: handle game over, winning and losing screens
 
 export default {
   name: 'Home',
@@ -110,6 +109,11 @@ export default {
     setupSocket () {
       this.socket = this.$store.state.socket
 
+      // when server sends client time sync info
+      this.socket.on(TIME_UPDATE_EVENT_NAME, (myTime) => {
+        this.tugBar.syncTimes(myTime)
+      })
+
       // when server sends a new VALID word back to client
       this.socket.on(WORD_BROADCAST_EVENT_NAME, (word) => {
       // console.log(`valid word update: ${word}`)
@@ -147,6 +151,16 @@ export default {
 
       // when server informs client of verified game result
       this.socket.on(GAME_RESULT_EVENT_NAME, (gameWasWon) => {
+        this.isInputPaused = true
+
+        if (gameWasWon) {
+          this.tugBar.myTime = this.tugBar.totalTime
+          this.tugBar.yourTime = 0
+        } else {
+          this.tugBar.myTime = 0
+          this.tugBar.yourTime = this.tugBar.totalTime
+        }
+
         this.didIWin = gameWasWon
         this.gameIsOver = true
       })
@@ -168,6 +182,7 @@ export default {
       })
     },
     removeSocketListeners () {
+      this.socket.off(TIME_UPDATE_EVENT_NAME)
       this.socket.off(WORD_BROADCAST_EVENT_NAME)
       this.socket.off(WORD_ERROR_EVENT_NAME)
       this.socket.off(WORD_SUCCESS_EVENT_NAME)
@@ -186,12 +201,16 @@ export default {
         // clear out starting text if necessary
         if (this.word === START_TEXT || this.word === NEW_WORD_TEXT) {
           this.candidateWord = key.toLowerCase()
+          // if this is the input that starts the game
+          // if (!this.tugBar.hasGameStarted) {
+          //   this.socket.emit(GAME_STARTED_EVENT_NAME, this.room.code, this.socket.id)
+          // }
         } else {
           this.candidateWord = this.word + key.toLowerCase()
         }
 
         // server needs to know the room code to locate the players with wordBroadcast
-        this.socket.emit(WORD_UPDATE_EVENT_NAME, this.room.code, this.candidateWord)
+        this.socket.emit(WORD_UPDATE_EVENT_NAME, this.room.code, this.socket.id, this.candidateWord)
 
         // attempted word submission event
       } else if (key === 'Enter') {
@@ -202,7 +221,7 @@ export default {
         if (this.word.length < 4) return
 
         // server needs to know the room code to locate the players with wordSuccess
-        this.socket.emit(WORD_SUBMISSION_EVENT_NAME, this.room.code, this.word)
+        this.socket.emit(WORD_SUBMISSION_EVENT_NAME, this.room.code, this.socketId, this.word)
       }
     },
 
@@ -213,15 +232,7 @@ export default {
     },
 
     applyPenalty () {
-      this.tugBar.applyPenalty(this.isMyTurn)
       this.startNewWord()
-    },
-
-    handleGameOver (gameWasWon) {
-      // console.log(`handling game over: ${gameWasWon ? 'win' : 'loss'}`)
-
-      this.isInputPaused = true
-      this.socket.emit(GAME_OVER_EVENT_NAME, this.room.code, gameWasWon)
     },
 
     handleRematch () {

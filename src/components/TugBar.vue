@@ -8,7 +8,9 @@
 
 <script>
 // const TOTAL_STARTING_TIME = 10000
-const TOTAL_STARTING_TIME = 15
+const TOTAL_STARTING_TIME = 30
+
+// TODO: move source of truth for timing to the server... currently it appears that desyncs are occurring
 
 export default {
   name: 'TugBar',
@@ -78,13 +80,6 @@ export default {
             clearInterval(this.intervalId)
             this.intervalId = null
           }
-          // Time has elapsed, handle winning/losing of game
-
-          // game is over, the second argument to emit is gameWasWon : boolean
-          if (this.myTime === 0) this.$emit('gameOver', false)
-          else if (this.myTime === this.totalTime) this.$emit('gameOver', true)
-          else throw new Error(`game ended with abnormal myTime: ${this.myTime}`)
-
           return
         }
 
@@ -132,6 +127,14 @@ export default {
       }
 
       this.updateTimeInterval()
+    },
+
+    syncTimes (myTime) {
+      if (myTime < 0) myTime = 0
+      if (myTime > TOTAL_STARTING_TIME) myTime = TOTAL_STARTING_TIME
+
+      this.myTime = myTime
+      this.yourTime = TOTAL_STARTING_TIME - myTime
     },
 
     reset (isShrinking) {
