@@ -6,7 +6,7 @@
       span#yourName.name(v-else) them -->
       |{{word}}
     #subtitleText.flexText(v-else)
-      //- TODO: think about replacing this conditional with something else
+      //- can replace this conditional with a variable from server signal announcing win
       span#myName.name(v-if='!isMyTurn') you
       span#yourName.name(v-else) they
       | are the winner!
@@ -221,7 +221,7 @@ export default {
         if (this.word.length < 4) return
 
         // server needs to know the room code to locate the players with wordSuccess
-        this.socket.emit(WORD_SUBMISSION_EVENT_NAME, this.room.code, this.socketId, this.word)
+        this.socket.emit(WORD_SUBMISSION_EVENT_NAME, this.room.code, this.socket.id, this.word)
       }
     },
 

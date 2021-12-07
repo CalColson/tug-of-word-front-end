@@ -10,8 +10,6 @@
 // const TOTAL_STARTING_TIME = 10000
 const TOTAL_STARTING_TIME = 30
 
-// TODO: move source of truth for timing to the server... currently it appears that desyncs are occurring
-
 export default {
   name: 'TugBar',
   props: [
@@ -66,32 +64,34 @@ export default {
     }
   },
   methods: {
+    // This code can be commented back in to allow for the browser updated itself in between syncs from the server
+    // it is currently *unnecessary* as the server is syncing ever tick right now
     updateTimeInterval () {
       // Clear interval to replace it with new one
-      if (this.intervalId) {
-        clearInterval(this.intervalId)
-        this.intervalId = null
-      }
+      // if (this.intervalId) {
+      //   clearInterval(this.intervalId)
+      //   this.intervalId = null
+      // }
 
-      this.intervalId = setInterval(() => {
-        // clear the interval in the event that the time has elapsed
-        if (!this.isTimeInBounds()) {
-          if (this.intervalId) {
-            clearInterval(this.intervalId)
-            this.intervalId = null
-          }
-          return
-        }
+      // this.intervalId = setInterval(() => {
+      //   // clear the interval in the event that the time has elapsed
+      //   if (!this.isTimeInBounds()) {
+      //     if (this.intervalId) {
+      //       clearInterval(this.intervalId)
+      //       this.intervalId = null
+      //     }
+      //     return
+      //   }
 
-        // either increase or decrease myTime by a tenth of a second
-        if (this.isShrinking) {
-          this.myTime = Math.round((this.myTime - 0.1) * 10) / 10
-        } else {
-          this.myTime = Math.round((this.myTime + 0.1) * 10) / 10
-        }
-        // update yourTime based on myTime
-        this.yourTime = this.totalTime - this.myTime
-      }, 100)
+      //   // either increase or decrease myTime by a tenth of a second
+      //   if (this.isShrinking) {
+      //     this.myTime = Math.round((this.myTime - 0.1) * 10) / 10
+      //   } else {
+      //     this.myTime = Math.round((this.myTime + 0.1) * 10) / 10
+      //   }
+      //   // update yourTime based on myTime
+      //   this.yourTime = this.totalTime - this.myTime
+      // }, 100)
     },
 
     isTimeInBounds () {
