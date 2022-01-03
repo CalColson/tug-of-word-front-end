@@ -8,7 +8,7 @@
 
 <script>
 // const TOTAL_STARTING_TIME = 10000
-const TOTAL_STARTING_TIME = 30
+const TOTAL_STARTING_TIME = 20
 
 export default {
   name: 'TugBar',

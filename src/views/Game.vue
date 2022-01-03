@@ -49,11 +49,10 @@ const GAME_LEFT_EVENT_NAME = 'gameLeft'
 const REMATCH_REQUEST_EVENT_NAME = 'rematchRequest'
 
 export default {
-  name: 'Home',
+  name: 'Game',
   components: {
     TugBar
   },
-  // not needed yet... maybe unnecessary
   props: ['room'],
   data: () => {
     return {
