@@ -1,18 +1,18 @@
 <template lang='pug'>
-  #game
-    #titleText.flexText tug of word
-    #subtitleText.flexText(v-if='!gameIsOver')
-      span#myName.name(v-if='isMyTurn') you -->
-      span#yourName.name(v-else) them -->
-      |{{word}}
-    #subtitleText.flexText(v-else)
-      //- can replace this conditional with a variable from server signal announcing win
-      span#myName.name(v-if='!isMyTurn') you
-      span#yourName.name(v-else) they
-      | are the winner!
-    TugBar(ref='tugBar' :isMyTurn='isMyTurn')
-    #buttonContainer
-      button#rematchButton(v-if='gameIsOver' @click='handleRematch') rematch?
+#game
+  #titleText.flexText tug of word
+  #subtitleText.flexText(v-if='!gameIsOver')
+    span#myName.name(v-if='isMyTurn') you -->
+    span#yourName.name(v-else) them -->
+    |{{word}}
+  #subtitleText.flexText(v-else)
+    //- can replace this conditional with a variable from server signal announcing win
+    span#myName.name(v-if='!isMyTurn') you
+    span#yourName.name(v-else) they
+    | are the winner!
+  TugBar(ref='tugBar' :isMyTurn='isMyTurn')
+  #buttonContainer
+    button#rematchButton.custom-button(v-if='gameIsOver' @click='handleRematch') rematch?
 </template>
 
 <script>
@@ -259,6 +259,10 @@ export default {
   height: 50%;
   width: 100%;
   font-size: xx-large;
+}
+
+#titleText {
+  color: $textColor;
 }
 
 .flexText {

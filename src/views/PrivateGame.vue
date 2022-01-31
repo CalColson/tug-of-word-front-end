@@ -1,19 +1,19 @@
 <template lang='pug'>
-  //- privateGame page
-  #privateGame(v-if='!showHost')
-    font-awesome-icon#returnArrow.fa-3x(icon='chevron-left' @click='$router.back()')
-    #title.flexText tug of word (private game)
-    #codeEntry.flexText
-      label(for='codeInput') enter code to join game:
-      input#codeInput(@keyup.enter='checkCode' placeholder='enter code')
-      button#joinButton(@click='checkCode') join
-    .flexText or
-    button#hostButton(@click='toggleHostPage') host a game
-  //- host page
-  #hostPage(v-else)
-    font-awesome-icon#returnArrow.fa-3x(icon='chevron-left' @click='toggleHostPage')
-    #code.flexText your code is:
-      span {{code}}
+//- privateGame page
+#privateGame(v-if='!showHost')
+  font-awesome-icon#returnArrow.fa-3x(icon='chevron-left' @click='$router.back()')
+  #title.flexText tug of word (private game)
+  #codeEntry.flexText
+    label(for='codeInput') enter code to join game:
+    input#codeInput(@keyup.enter='checkCode' placeholder='enter code')
+    button#joinButton.custom-button(@click='checkCode') join
+  .flexText or
+  button#hostButton.custom-button(@click='toggleHostPage') host a game
+//- host page
+#hostPage(v-else)
+  font-awesome-icon#returnArrow.fa-3x(icon='chevron-left' @click='toggleHostPage')
+  #code.flexText your code is:
+    span {{code}}
 </template>
 
 <script>
@@ -122,7 +122,9 @@ export default {
 
 #joinButton {
   margin-left: 0.5rem;
+  padding: 5px 30px;
   height: 17.5%;
+  line-height: calc(17.5% + 10px);
   font-size: x-large;
 }
 
@@ -133,6 +135,10 @@ export default {
 
   cursor: pointer;
   font-size: xx-large;
+}
+
+#title {
+  color: $textColor;
 }
 
 .flexText {

@@ -1,17 +1,17 @@
 <template lang='pug'>
-  #compGame
-    #titleText.flexText tug of word
-    #subtitleText.flexText(v-if='!gameIsOver')
-      span#myName.name(v-if='isMyTurn') you -->
-      span#yourName.name(v-else) them -->
-      |{{word}}
-    #subtitleText.flexText(v-else)
-      span#myName.name(v-if='!isMyTurn') you
-      span#yourName.name(v-else) they
-      | are the winner!
-    TugBar(ref='tugBar' :isMyTurn='isMyTurn')
-    #buttonContainer(v-if='gameIsOver')
-      button#rematchButton(@click='handleRematch') rematch?
+#compGame
+  #titleText.flexText tug of word
+  #subtitleText.flexText(v-if='!gameIsOver')
+    span#myName.name(v-if='isMyTurn') you -->
+    span#yourName.name(v-else) them -->
+    |{{word}}
+  #subtitleText.flexText(v-else)
+    span#myName.name(v-if='!isMyTurn') you
+    span#yourName.name(v-else) they
+    | are the winner!
+  TugBar(ref='tugBar' :isMyTurn='isMyTurn')
+  #buttonContainer(v-if='gameIsOver')
+    button#rematchButton.custom-button(@click='handleRematch') rematch?
 </template>
 
 <script>
@@ -280,6 +280,9 @@ export default {
   height: 50%;
   width: 100%;
   font-size: xx-large;
+}
+#titleText {
+  color: $textColor;
 }
 
 .flexText {

@@ -1,6 +1,6 @@
 <template lang='pug'>
-  #app
-    router-view
+#app
+  router-view
 </template>
 
 <script>
@@ -15,17 +15,20 @@ export default {
 </script>
 
 <style lang='scss'>
-$bgColor: slategray;
+@font-face {
+  font-family: 'Mochiy Pop P One';
+  src: local('Mochiy Pop P One'), url(./assets/fonts/Mochiy_Pop_P_One/MochiyPopPOne-Regular.ttf) format('truetype');
+}
 
 body {
   margin: 0;
 }
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
   height: 100vh;
+
+  color: $textColor;
   background: $bgColor;
+
+  font-family: 'Mochiy Pop P One', sans-serif;
 }
 </style>

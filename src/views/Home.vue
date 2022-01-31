@@ -1,9 +1,15 @@
 <template lang="pug">
 #home
-  #title.flexText tug of word
+  #logo
+    div
+      img.rope.rope-left(src='../assets/images/rope_edit.png')
+    #title.flexText { tug of word }
+    div
+      img.rope.rope-right(src='../assets/images/rope_edit.png')
   .spacer
-  router-link.option(to='/private') play with a friend
-  router-link.option(to='/computer') play vs computer
+  router-link.option.custom-button(to='/private') play with a friend
+  .spacer
+  router-link.option.custom-button(to='/computer') play vs computer
   .spacer
 </template>
 
@@ -18,21 +24,20 @@ export default {
   height: 100%;
   padding: 0 2rem;
   display: grid;
-  grid-template-rows: 2fr 1fr 3fr 3fr 1fr;
+  grid-template-rows: 2fr 1fr 3fr 1fr 3fr 1fr;
 }
-.flexText {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 
-  font-size: xx-large;
-  color: white;
+#logo {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  align-items: center;
+}
+
+.flexText {
+  text-align: center;
+  font-size: 3.5em;
 }
 .option {
-  background: white;
-  color: black;
-  border: 3px solid slategray;
-
   font-size: xx-large;
 
   margin: 0 auto;
@@ -44,5 +49,14 @@ export default {
 
 a {
   text-decoration: none;
+}
+
+.rope{
+  max-width: 100%;
+  height: auto;
+}
+.rope-right {
+  transform: rotate(180deg);
+  transform: scaleX(-1);
 }
 </style>
